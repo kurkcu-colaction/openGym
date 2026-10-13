@@ -1,21 +1,36 @@
+#services:
+#  - type: web
+#    name: opengym
+#    runtime: docker
+#    dockerfilePath: ./render/Dockerfile.render
+#    dockerContext: .
+#    plan: starter            # Disk için ücretli plan şart (Free planda disk yok)
+#    region: frankfurt
+#    healthCheckPath: /api/health
+#    disk:
+#      name: opengym-data
+#      mountPath: /data
+#      sizeGB: 1
+#    envVars:
+#      - key: FIRST_USER_ADMIN   # İlk oluşturulan profil admin olur
+#        value: "1"
+#      - key: DEFAULT_LANG
+#        value: tr
+#      # Kendi profilini oluşturduktan sonra yabancı kayıtları kapatmak için:
+#      # - key: INVITE_ONLY
+#      #   value: "1"
+
 services:
   - type: web
     name: opengym
     runtime: docker
     dockerfilePath: ./render/Dockerfile.render
     dockerContext: .
-    plan: starter            # Disk için ücretli plan şart (Free planda disk yok)
+    plan: free
     region: frankfurt
     healthCheckPath: /api/health
-    disk:
-      name: opengym-data
-      mountPath: /data
-      sizeGB: 1
     envVars:
-      - key: FIRST_USER_ADMIN   # İlk oluşturulan profil admin olur
+      - key: FIRST_USER_ADMIN
         value: "1"
       - key: DEFAULT_LANG
         value: tr
-      # Kendi profilini oluşturduktan sonra yabancı kayıtları kapatmak için:
-      # - key: INVITE_ONLY
-      #   value: "1"
