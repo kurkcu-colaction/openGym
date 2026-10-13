@@ -1,0 +1,40 @@
+# openGym — Render için tek konteyner: React frontend + nginx + Node API.
+# Orijinal docker-compose'daki iki servisi (web + api) tek imajda birleştirir;
+# böylece Render'da tek Web Service ve tek Persistent Disk yeterli olur.
+
+# 1) Frontend build (web/Dockerfile ile aynı adımlar)
+FROM node:22-alpine AS frontend
+WORKDIR /app/frontend
+COPY frontend/package.json frontend/package-lock.json* ./
+RUN npm ci --ignore-scripts
+COPY api/coach/core/ /app/api/coach/core/
+COPY frontend/ ./
+RUN npm run build
+
+# 2) Runtime: Node API + nginx
+FROM node:22-alpine
+RUN apk upgrade --no-cache && apk add --no-cache nginx gettext
+
+WORKDIR /app
+COPY api/package.json api/package-lock.json* ./
+RUN npm ci --omit=dev --omit=optional && npm cache clean --force
+COPY api/*.js ./
+COPY api/coach ./coach
+
+COPY --from=frontend /app/frontend/dist /usr/share/nginx/html
+COPY catalogue/media/ /usr/share/nginx/html/exercise-media/
+COPY web/nginx.conf.template /etc/nginx/opengym.conf.template
+RUN rm -f /etc/nginx/http.d/default.conf
+
+COPY render/render-start.sh /render-start.sh
+RUN chmod 755 /render-start.sh
+
+ENV NODE_ENV=production \
+    DATA_DIR=/data \
+    TRUST_PROXY=1 \
+    BASE_PATH="" \
+    CF_CONNECTING_IP="" \
+    MEDIA_UPLOAD_MAX=48m
+
+EXPOSE 10000
+CMD ["/render-start.sh"]
